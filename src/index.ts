@@ -1,11 +1,11 @@
 import { WorkerEntrypoint } from 'cloudflare:workers'
 
 /**
- * A class for doing RAD SHIT
+ * This is my entrypoint and it is extremely cool
  */
 export class Baz extends WorkerEntrypoint {
   /**
-   * A method for doing OTHER COOL SHIT
+   * A method for doing some COMPLEX CALCULATIONS
    * @return {number} It's just the number 5, ok?
    * */
   foo() {
@@ -22,9 +22,6 @@ export class Baz extends WorkerEntrypoint {
   }
 }
 
-/**
- * This vengabus is coming, sir.
- * */
 class Foo extends WorkerEntrypoint {
   /**
    * Reverses a string and converts it to uppercase.

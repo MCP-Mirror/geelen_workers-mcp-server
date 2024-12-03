@@ -57,6 +57,7 @@ for (const point of data) {
       name = name.slice('exports.'.length)
       exported_as = name
     }
+    // console.dir(point, { depth: null })
     exported_classes[name] ??= {
       exported_as,
       description: point.classdesc!,
@@ -89,7 +90,7 @@ for (const point of data) {
         })
         .filter((p) => p !== null)
 
-      console.dir(point, { depth: null })
+      // console.dir(point, { depth: null })
       ex.methods.push({
         name: point.name,
         description: point.description,
