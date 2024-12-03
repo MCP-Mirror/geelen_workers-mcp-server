@@ -2,6 +2,7 @@
   "name": "workers-mcp-server",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "deploy": "wrangler deploy",
     "dev": "wrangler dev",
@@ -12,6 +13,10 @@
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.5.2",
     "@cloudflare/workers-types": "^4.20241202.0",
+    "@types/node": "^22.10.1",
+    "jsdoc-api": "^9.3.4",
+    "ts-blank-space": "^0.4.4",
+    "tsx": "^4.19.2",
     "typescript": "^5.5.2",
     "vitest": "2.0.5",
     "wrangler": "^3.60.3"
