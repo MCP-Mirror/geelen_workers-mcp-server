@@ -30,6 +30,7 @@ const data = (await jsdoc.explain({ source: source, cache: true })) as Array<{
   async?: boolean
   params?: Array<{ type: { names: string[] }; description: string; name: string }>
   returns?: Array<{ type: { names: string[] }; description: string }>
+  examples?: string[]
 }>
 // console.log(...data)
 
@@ -37,31 +38,36 @@ type Param = { type: string; name: string; description: string }
 type Returns = { type: string; description: string } | null
 type EntrypointDoc = {
   description: string
+  exported_as: string | null
   methods: Array<{
     name: string
     description: string
     params: Param[]
     returns: Returns
+    examples?: string[]
   }>
 }
 
 const exported_classes: Record<string, EntrypointDoc> = {}
 for (const point of data) {
-  console.dir(point, { depth: null })
-  const { kind, name, description, classdesc, memberof, meta: { code } = {} } = point
-
-  if (kind === 'class' && code?.type === 'ClassDeclaration' && code.name.startsWith('exports.')) {
-    const name = code.name.slice('exports.'.length)
-    // console.log({ name })
-
-    exported_classes[name] = {
-      description: classdesc!,
+  if (point.kind === 'class' && point.meta?.code?.type === 'ClassDeclaration') {
+    let exported_as = null
+    let name = point.meta.code.name
+    if (name.startsWith('exports.')) {
+      name = name.slice('exports.'.length)
+      exported_as = name
+    }
+    exported_classes[name] ??= {
+      exported_as,
+      description: point.classdesc!,
       methods: [],
     }
   }
+}
 
-  if (kind === 'function' && code?.type === 'MethodDefinition' && memberof) {
-    const ex = exported_classes[memberof]
+for (const point of data) {
+  if (point.kind === 'function' && point.meta?.code?.type === 'MethodDefinition' && point.memberof) {
+    const ex = exported_classes[point.memberof]
     if (ex) {
       let returns: Returns = null
       if (point.returns) {
@@ -83,14 +89,33 @@ for (const point of data) {
         })
         .filter((p) => p !== null)
 
+      console.dir(point, { depth: null })
       ex.methods.push({
-        name,
-        description,
+        name: point.name,
+        description: point.description,
         params,
         returns,
+        ...(point.examples ? { examples: point.examples } : {}),
       })
     } else {
-      throw new Error(`Missing memberof ${memberof}. Got ${JSON.stringify(point)}, had ${JSON.stringify(Object.keys(exported_classes))}`)
+      throw new Error(
+        `Missing memberof ${point.memberof}. Got ${JSON.stringify(point)}, had ${JSON.stringify(Object.keys(exported_classes))}`,
+      )
+    }
+  }
+}
+
+for (const point of data) {
+  if (point.kind === 'member' && point.scope === 'global' && point.meta?.code?.name?.startsWith('exports.')) {
+    let name = point.name
+    const renamed = source.substring(...point.meta.range).match(/(\w+) as \w+/)
+    if (renamed) {
+      name = renamed[1]
+    }
+    if (exported_classes[name]) {
+      exported_classes[name].exported_as = point.name
+    } else {
+      console.log(`WARN: couldn't find which class to export for ${JSON.stringify(point)}`)
     }
   }
 }

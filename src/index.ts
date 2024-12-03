@@ -1,16 +1,5 @@
 import { WorkerEntrypoint } from 'cloudflare:workers'
 
-export default {
-  async fetch(request, env, ctx): Promise<Response> {
-    return new Response('Hello World!')
-  },
-} satisfies ExportedHandler<Env>
-
-export type X = {
-  foo: number
-  bar: string
-}
-
 /**
  * A class for doing RAD SHIT
  */
@@ -32,3 +21,29 @@ export class Baz extends WorkerEntrypoint {
     return 'five'
   }
 }
+
+/**
+ * This vengabus is coming, sir.
+ * */
+class Foo extends WorkerEntrypoint {
+  /**
+   * Reverses a string and converts it to uppercase.
+   *
+   * @param {string} s - The input string to be transformed.
+   * @returns {Promise<string>} A promise that resolves to the transformed string.
+   * @throws {TypeError} If the input is not a string.
+   *
+   * @example
+   * const result = await worker.baz("hello");
+   * console.log(result); // "OLLEH"
+   *
+   * @example
+   * const result = await worker.baz("JavaScript");
+   * console.log(result); // "TPIRCSAVAJ"
+   */
+  async baz(s: string): Promise<string> {
+    return s.split('').reverse().join('').toUpperCase()
+  }
+}
+
+export { Foo as Foof }
