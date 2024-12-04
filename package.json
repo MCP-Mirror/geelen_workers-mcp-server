@@ -4,13 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "deploy": "wrangler deploy",
+    "deploy:worker": "wrangler deploy",
     "dev": "wrangler dev",
     "start": "wrangler dev",
     "test": "vitest",
-    "cf-typegen": "wrangler types"
+    "types": "wrangler types"
   },
   "devDependencies": {
+    "@cloudflare/puppeteer": "^0.0.14",
     "@cloudflare/vitest-pool-workers": "^0.5.2",
     "@cloudflare/workers-types": "^4.20241202.0",
     "@types/node": "^22.10.1",

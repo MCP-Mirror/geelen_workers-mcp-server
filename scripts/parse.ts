@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 import tsBlankSpace from 'ts-blank-space'
 import jsdoc from 'jsdoc-api'
 
-const source = tsBlankSpace(fs.readFileSync('src/index.ts', 'utf8'))
+const source = tsBlankSpace(fs.readFileSync(process.argv[2], 'utf8'))
 
 const data = (await jsdoc.explain({ source: source, cache: true })) as Array<{
   comment: string
@@ -37,7 +37,7 @@ const data = (await jsdoc.explain({ source: source, cache: true })) as Array<{
 type Param = { type: string; name: string; description: string }
 type Returns = { type: string; description: string } | null
 type EntrypointDoc = {
-  description: string
+  description: string | null
   exported_as: string | null
   methods: Array<{
     name: string
@@ -60,7 +60,7 @@ for (const point of data) {
     // console.dir(point, { depth: null })
     exported_classes[name] ??= {
       exported_as,
-      description: point.classdesc!,
+      description: point.classdesc! || null,
       methods: [],
     }
   }

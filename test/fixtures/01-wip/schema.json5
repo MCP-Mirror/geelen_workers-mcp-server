@@ -1,0 +1,48 @@
+{
+	Foo: {
+		exported_as: 'Foo',
+		description: 'This is my entrypoint and it is extremely cool',
+		methods: [
+			{
+				name: 'bar',
+				description: 'A method for doing some COMPLEX CALCULATIONS',
+				params: [],
+				returns: { description: "It's just the number 5, ok?", type: 'number' }
+			},
+			{
+				name: 'baz',
+				description: null,
+				params: [ { description: 'a Number!', name: 'num', type: 'number' } ],
+				returns: {
+					description: 'It\'s the word "five" this time, boii',
+					type: 'Promise.<string>'
+				}
+			}
+		]
+	},
+	NotDirectlyExported: {
+		exported_as: 'DifferentName',
+		description: null,
+		methods: [
+			{
+				name: 'baz',
+				description: 'Reverses a string and converts it to uppercase.',
+				params: [
+					{
+						description: 'The input string to be transformed.',
+						name: 's',
+						type: 'string'
+					}
+				],
+				returns: {
+					description: 'A promise that resolves to the transformed string.',
+					type: 'Promise.<string>'
+				},
+				examples: [
+					'const result = await worker.baz("hello");\nconsole.log(result); // "OLLEH"',
+					'const result = await worker.baz("JavaScript");\nconsole.log(result); // "TPIRCSAVAJ"'
+				]
+			}
+		]
+	}
+}

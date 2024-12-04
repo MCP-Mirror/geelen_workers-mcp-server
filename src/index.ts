@@ -1,45 +1,42 @@
 import { WorkerEntrypoint } from 'cloudflare:workers'
+import puppeteer from '@cloudflare/puppeteer'
+import { Env } from '../worker-configuration'
 
-/**
- * This is my entrypoint and it is extremely cool
- */
-export class Foo extends WorkerEntrypoint {
-  /**
-   * A method for doing some COMPLEX CALCULATIONS
-   * @return {number} It's just the number 5, ok?
-   * */
-  bar() {
-    return 5
+export class ExampleWorkerMCP extends WorkerEntrypoint<Env> {
+  async takeScreenshot(url: string, clickTheseFirst: string[] = []) {
+    const browser = await puppeteer.launch(this.env.MYBROWSER)
+    const page = await browser.newPage()
+    await page.setViewport({ width: 1024, height: 2048 })
+    await page.goto(url)
+
+    for (const selector of clickTheseFirst) {
+      try {
+        const clickable = await page.waitForSelector(`button:has-text("${selector}")`, {
+          timeout: 5000,
+        })
+        if (clickable) {
+          await clickable.click()
+        }
+      } catch (e) {
+        console.log(`Couldn't find button with text ${selector}, proceeding...`)
+      }
+    }
+    const img = await page.screenshot()
+    await browser.close()
+    return new Response(img, { headers: { 'Content-Type': 'image/jpeg' } })
   }
 
-  /**
-   * @param num {number} a Number!
-   * @return {Promise<string>} It's the word "five" this time, boii
-   * */
-  async baz(num: number) {
-    return 'five'
-  }
+  async sendEmail(payload: string) {}
 }
 
-class NotDirectlyExported extends WorkerEntrypoint {
-  /**
-   * Reverses a string and converts it to uppercase.
-   *
-   * @param {string} s - The input string to be transformed.
-   * @returns {Promise<string>} A promise that resolves to the transformed string.
-   * @throws {TypeError} If the input is not a string.
-   *
-   * @example
-   * const result = await worker.baz("hello");
-   * console.log(result); // "OLLEH"
-   *
-   * @example
-   * const result = await worker.baz("JavaScript");
-   * console.log(result); // "TPIRCSAVAJ"
-   */
-  async baz(s: string): Promise<string> {
-    return s.split('').reverse().join('').toUpperCase()
-  }
-}
+export default {
+  async fetch(request: Request, env: Env) {
+    const { pathname } = new URL(request.url)
 
-export { NotDirectlyExported as DifferentName }
+    if (pathname === '/test-browser') {
+      return env.MCP.takeScreenshot('https://nytimes.com')
+    }
+
+    return new Response(null, { status: 404 })
+  },
+}
