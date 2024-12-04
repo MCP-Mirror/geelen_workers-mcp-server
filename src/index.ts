@@ -3,26 +3,25 @@ import { WorkerEntrypoint } from 'cloudflare:workers'
 /**
  * This is my entrypoint and it is extremely cool
  */
-export class Baz extends WorkerEntrypoint {
+export class Foo extends WorkerEntrypoint {
   /**
    * A method for doing some COMPLEX CALCULATIONS
    * @return {number} It's just the number 5, ok?
    * */
-  foo() {
+  bar() {
     return 5
   }
 
   /**
-   * Some method called 'bar'. Takes a number but doesn't use it
    * @param num {number} a Number!
    * @return {Promise<string>} It's the word "five" this time, boii
    * */
-  async bar(num: number) {
+  async baz(num: number) {
     return 'five'
   }
 }
 
-class Foo extends WorkerEntrypoint {
+class NotDirectlyExported extends WorkerEntrypoint {
   /**
    * Reverses a string and converts it to uppercase.
    *
@@ -43,4 +42,4 @@ class Foo extends WorkerEntrypoint {
   }
 }
 
-export { Foo as Foof }
+export { NotDirectlyExported as DifferentName }
