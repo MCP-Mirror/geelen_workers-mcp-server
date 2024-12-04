@@ -85,13 +85,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
   }
 
-  log(JSON.stringify(text))
+  const contentType = response.headers.get('content-type')
 
-  return {
-    toolResult: {
-      content: [{ type: 'text', text }],
-    },
+  if (contentType?.match(/text\/plain/)) {
+    return {
+      toolResult: {
+        content: [{ type: 'text', text }],
+      },
+    }
+  } else {
+    return {
+      toolResult: {
+        content: [{ type: 'text', text: `Unknown contentType ${contentType} ${text}` }],
+        isError: true,
+      },
+    }
   }
+
+  log(JSON.stringify(text))
 })
 
 const transport = new StdioServerTransport()

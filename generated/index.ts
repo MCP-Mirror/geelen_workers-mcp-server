@@ -6,11 +6,11 @@ export default {
     const { pathname } = new URL(request.url)
 
     if (pathname === '/test-browser') {
-      return env.MCP.takeScreenshot('https://nytimes.com', ['Continue'])
+      return await env.MCP.takeScreenshot('https://nytimes.com', ['Continue'])
     }
 
     if (pathname === '/test-secret') {
-      return Response.json({ secret: env.SHARED_SECRET })
+      return Response.json({ secret: env.SHARED_SECRET, length: env.SHARED_SECRET.length })
     }
 
     if (pathname === '/rpc' && request.method === 'POST') {
