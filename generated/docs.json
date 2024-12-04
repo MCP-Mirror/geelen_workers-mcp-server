@@ -1,0 +1,46 @@
+{
+  "ExampleWorkerMCP": {
+    "exported_as": "ExampleWorkerMCP",
+    "description": null,
+    "methods": [
+      {
+        "name": "takeScreenshot",
+        "description": "Takes a screenshot of a given URL",
+        "params": [
+          {
+            "description": "The URL to take a screenshot of",
+            "name": "url",
+            "type": "string"
+          },
+          {
+            "description": "An array of buttons to click before taking the screenshot",
+            "name": "clickTheseFirst",
+            "type": "Array.<string>",
+            "optional": true
+          }
+        ],
+        "returns": {
+          "description": "A promise that resolves to a buffer containing the screenshot",
+          "type": "Promise.<Response>"
+        },
+        "examples": [
+          "const response = await worker.takeScreenshot('https://example.com')\nconsole.log((await response.arrayBuffer()).toString('base64'))"
+        ]
+      },
+      {
+        "name": "sendEmail",
+        "params": [],
+        "returns": null
+      },
+      {
+        "name": "random",
+        "description": "Generates a random number. This is extra random because it had to travel half way around the world to be generated.",
+        "params": [],
+        "returns": {
+          "description": "A message containing a super duper random number",
+          "type": "string"
+        }
+      }
+    ]
+  }
+}

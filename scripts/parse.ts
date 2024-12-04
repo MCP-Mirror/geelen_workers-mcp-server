@@ -28,13 +28,13 @@ const data = (await jsdoc.explain({ source: source, cache: true })) as Array<{
   memberof?: string
   scope: 'global' | 'static' | 'instance'
   async?: boolean
-  params?: Array<{ type: { names: string[] }; description: string; name: string }>
+  params?: Array<{ type: { names: string[] }; description: string; name: string; optional?: boolean }>
   returns?: Array<{ type: { names: string[] }; description: string }>
   examples?: string[]
 }>
 // console.log(...data)
 
-type Param = { type: string; name: string; description: string }
+type Param = { type: string; name: string; description: string; optional?: boolean }
 type Returns = { type: string; description: string } | null
 type EntrypointDoc = {
   description: string | null
@@ -80,13 +80,13 @@ for (const point of data) {
       }
 
       const params: Param[] = (point.params || [])
-        .map(({ description, type, name }) => {
+        .map(({ description, type, name, optional }) => {
           if (type.names.length !== 1) {
             console.log(`WARN: unexpected params value for ${JSON.stringify(point)}`)
             return null
           }
 
-          return { description, name, type: type.names[0] }
+          return { description, name, type: type.names[0], optional }
         })
         .filter((p) => p !== null)
 
@@ -121,4 +121,4 @@ for (const point of data) {
   }
 }
 
-console.dir(exported_classes, { depth: null })
+console.log(JSON.stringify(exported_classes, null, 2))
