@@ -6,6 +6,10 @@
   "observability": {
     "enabled": true
   },
+  "vars": {
+    /* Note: Configure this to be an email from a domain where you have Email Routing enabled */
+    "EMAIL_FROM": "PLEASE CONFIGURE ME"
+  },
   "services": [
     {
       "binding": "MCP",
@@ -17,7 +21,6 @@
   /* Note: comment this out if you haven't set up Email Routing */
   "send_email": [
     {
-      "type": "send_email",
       "name": "EMAIL"
     }
   ]
