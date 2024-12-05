@@ -1,4 +1,4 @@
-const BINDINGS = {"ExampleWorkerMCP":{"binding":"MCP","service":"workers-mcp-server","entrypoint":"ExampleWorkerMCP"}}/**
+/**
  * This file provides the public HTTP handler to be able to deploy this worker.
  *
  * When being deployed, the following line is injected at the beginning of this file:

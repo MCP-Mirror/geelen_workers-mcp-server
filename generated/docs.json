@@ -13,18 +13,18 @@
             "type": "string"
           },
           {
-            "description": "An array of buttons to click before taking the screenshot",
+            "description": "An array of buttons to click before taking the screenshot. Useful for\nclearing any popups or modals that appear on your first visit to a site.",
             "name": "clickTheseFirst",
             "type": "Array.<string>",
             "optional": true
           }
         ],
         "returns": {
-          "description": "A promise that resolves to a buffer containing the screenshot",
+          "description": "A promise that resolves to an arraybuffer containing the screenshot",
           "type": "Promise.<Response>"
         },
         "examples": [
-          "const response = await worker.takeScreenshot('https://example.com')\nconsole.log((await response.arrayBuffer()).toString('base64'))"
+          "const response = await worker.takeScreenshot('https://example.com', ['Close'])\nconst img = await response.arrayBuffer()"
         ]
       },
       {

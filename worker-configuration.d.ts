@@ -3,6 +3,7 @@
 import { ExampleWorkerMCP } from './src'
 
 interface Env {
-  MCP: Fetcher & typeof ExampleWorkerMCP
+  MCP: Service<ExampleWorkerMCP>
   MYBROWSER: Fetcher
+  KV: KVNamespace
 }

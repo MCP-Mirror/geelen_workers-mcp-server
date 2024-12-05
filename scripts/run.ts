@@ -75,7 +75,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   log(workers_url + '/rpc')
   const response = await fetch(workers_url + '/rpc', init)
 
-  const text = await response.text()
+  const buffer = await response.arrayBuffer()
+  if (buffer.byteLength === 0) {
+    return {
+      toolResult: {
+        content: [{ type: 'text', text: `Fetch failed. Got (${response.status}) Empty response` }],
+        isError: true,
+      },
+    }
+  }
+  log(`Got ${buffer.byteLength} bytes`)
+
+  const text = new TextDecoder().decode(buffer)
   if (!response.ok) {
     return {
       toolResult: {
@@ -91,6 +102,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     return {
       toolResult: {
         content: [{ type: 'text', text }],
+      },
+    }
+  } else if (contentType?.match(/image\//)) {
+    const base64 = Buffer.from(buffer).toString('base64')
+    return {
+      toolResult: {
+        content: [{ type: 'image', data: base64, mimeType: contentType }],
       },
     }
   } else {
