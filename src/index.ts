@@ -15,9 +15,11 @@ export class ExampleWorkerMCP extends WorkerEntrypoint<Env> {
    * const response = await worker.takeScreenshot('https://example.com', ['Close'])
    * const img = await response.arrayBuffer()
    */
-  async takeScreenshot(url: string, clickTheseFirst: string[] = []) {
+  async takeScreenshot(url: string, clickTheseFirst?: string[]) {
     const time = Math.floor(+new Date() / 100000) // Changes every 100 seconds
-    const cacheKey = JSON.stringify({ url, clickTheseFirst, time }).replace(/\W+/g, '_').replace(/_+/, '_')
+    const cacheKey = JSON.stringify({ url, clickTheseFirst, time })
+      .replace(/\W+/g, '_')
+      .replace(/^_|_$|(?<=_)_+/, '_')
 
     let img: ArrayBuffer | null = null
     img = await this.env.KV.get(cacheKey, { type: 'arrayBuffer' })
@@ -25,11 +27,11 @@ export class ExampleWorkerMCP extends WorkerEntrypoint<Env> {
     if (img === null) {
       const browser = await puppeteer.launch(this.env.MYBROWSER)
       const page = await browser.newPage()
-      await page.setViewport({ width: 1024, height: 2048 })
+      await page.setViewport({ width: 768, height: 1024 })
       console.log(`Going to ${url}. Cache key ${cacheKey}`)
       await page.goto(url)
 
-      for (const buttonText of clickTheseFirst) {
+      for (const buttonText of clickTheseFirst || []) {
         try {
           const selector = `::-p-text(${buttonText})`
           console.log(`Waiting for ${selector}`)

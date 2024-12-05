@@ -36,10 +36,9 @@ if (selfReferentialBindings.length === 0) {
 const entrypoints = index(selfReferentialBindings, 'entrypoint')
 console.log({ entrypoints })
 
-fs.writeFileSync(
-  path.resolve(__dirname, '../generated/index.ts'),
-  'const BINDINGS = ' + JSON.stringify(entrypoints) + fs.readFileSync(path.resolve(__dirname, '../templates/wrapper.ts')),
-)
+const wrapper = fs.readFileSync(path.resolve(__dirname, '../templates/wrapper.ts'), 'utf8')
+const preamble = 'const BINDINGS = ' + JSON.stringify(entrypoints)
+fs.writeFileSync(path.resolve(__dirname, '../generated/index.ts'), [preamble, wrapper].join('\n'))
 
 const secretPath = path.resolve(__dirname, '../generated/.shared-secret')
 if (!fs.existsSync(secretPath) || process.env.REGENERATE_SECRET) {

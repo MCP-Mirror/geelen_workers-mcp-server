@@ -44,12 +44,12 @@ export default {
       if (!binding) return new Response(null, { status: 404 })
       console.log({ binding })
 
-      // const stub = env[binding.binding]
-      const result = await env.MCP.takeScreenshot('https://nytimes.com')
+      const stub = env[binding.binding]
+      const result = await stub[method](...args)
       if (result instanceof Response) {
         return result
-        // } else if (typeof result === 'string') {
-        //   return new Response(result)
+      } else if (typeof result === 'string') {
+        return new Response(result)
       } else {
         return Response.json(result)
       }

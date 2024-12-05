@@ -1,4 +1,5 @@
-const BINDINGS = {"ExampleWorkerMCP":{"binding":"MCP","service":"workers-mcp-server","entrypoint":"ExampleWorkerMCP"}}/**
+const BINDINGS = {"ExampleWorkerMCP":{"binding":"MCP","service":"workers-mcp-server","entrypoint":"ExampleWorkerMCP"}}
+/**
  * This file provides the public HTTP handler to be able to deploy this worker.
  *
  * When being deployed, the following line is injected at the beginning of this file:
@@ -44,12 +45,12 @@ export default {
       if (!binding) return new Response(null, { status: 404 })
       console.log({ binding })
 
-      // const stub = env[binding.binding]
-      const result = await env.MCP.takeScreenshot('https://nytimes.com')
+      const stub = env[binding.binding]
+      const result = await stub[method](...args)
       if (result instanceof Response) {
         return result
-        // } else if (typeof result === 'string') {
-        //   return new Response(result)
+      } else if (typeof result === 'string') {
+        return new Response(result)
       } else {
         return Response.json(result)
       }
