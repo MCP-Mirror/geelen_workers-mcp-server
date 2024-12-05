@@ -45,11 +45,11 @@ export default {
 
       const { entrypoint, method, args = [] } = await request.json()
       console.log({ entrypoint, method, args })
-      const binding = BINDINGS[entrypoint]
-      if (!binding) return new Response(null, { status: 404 })
-      console.log({ binding })
+      const binding_config = BINDINGS[entrypoint]
+      if (!binding_config) return new Response(null, { status: 404 })
+      console.log({ binding_name: binding_config })
 
-      const stub = env[binding.binding]
+      const stub = env[binding_config.binding]
       try {
         const result = await stub[method](...args)
         if (result instanceof Response) {

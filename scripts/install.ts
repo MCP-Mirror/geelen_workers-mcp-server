@@ -29,7 +29,7 @@ const mcpConfig = {
   command: (await which('node')).trim(),
   args: [
     path.resolve(__dirname, '../node_modules/tsx/dist/cli.mjs'),
-    path.join(__dirname, 'run.ts'),
+    path.join(__dirname, 'local-proxy.ts'),
     claude_name,
     workers_url,
     entrypoint_name,

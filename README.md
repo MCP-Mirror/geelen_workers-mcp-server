@@ -33,7 +33,8 @@ And, using the provided MCP proxy, your Claude Desktop can see & invoke these me
 2. **`pnpm install`**
 3. **Check `wrangler.json`**<br/>The current demo uses both the [Email Routing](https://developers.cloudflare.com/email-routing/) API and [Durable Objects](https://developers.cloudflare.com/durable-objects/). If you don't have access to these, or they're not enabled, comment out the relevant sections in `wrangler.json` or your deploy will fail.
 4. **`pnpm deploy:worker`**<br/>This takes your `src/index.ts` file and generates `generated/docs.json` from it, then wraps it in `templates/wrapper.ts` and builds & deploys it using Wrangler.
-5. **`pnpm install:claude <worker-name> <worker-url> <entrypoint-name>`**<br/>For me, that's `pnpm install:claude workers-mcp-server https://workers-mcp-server.glen.workers.dev ExampleWorkerMCP`
+   * You'll also need to run `pnpm update:secret` the very first time you do this.
+5. **`pnpm install:claude <server-alias> <worker-url> <entrypoint-name>`**<br/>For me, that's `pnpm install:claude workers-mcp-server https://workers-mcp-server.glen.workers.dev ExampleWorkerMCP`
 6. **Restart Claude Desktop** You have to do this pretty often, but you _definitely_ have to do it after running the install step above.
 
 To iterate on your server, do the following:
@@ -44,11 +45,11 @@ To iterate on your server, do the following:
 
 ## How it works
 
-There are three pieces to this puzzle.
+Separately to your MCP code inside `src/index.ts`, there are three pieces required to make this work:
 
 ### 1. Docs generation: `scripts/generate-docs.ts`
 
-The [MCP Specification](https://spec.modelcontextprotocol.io/specification/server/tools/#listing-tools) separates the `tools/list` and `tools/call` operations into separate steps. Most MCP servers have naturally followed suit and separated their schema definition from the implementation, but combining them provides a much better DX for the author.
+The [MCP Specification](https://spec.modelcontextprotocol.io/specification/server/tools/#listing-tools) separates the `tools/list` and `tools/call` operations into separate steps, and most MCP servers have naturally followed suit and separated their schema definition from the implementation. However, combining them provides a much better DX for the author.
 
 I'm using [ts-blank-space](https://github.com/bloomberg/ts-blank-space) and [jsdoc-api](https://www.npmjs.com/package/jsdoc-api) to parse the TS and emit the schema, slightly tweaked. This gives you LLM-friendly documentation at build time:
 
@@ -109,7 +110,62 @@ async sendEmail(recipient: string, subject: string, contentType: string, body: s
 }
 ```
 
-This list of methods is very similar to the required MCP format for `tools/list`, but also gives us a list of the `WorkerEntrypoint` exports names to drive service bindings later.
+This list of methods is very similar to the required MCP format for `tools/list`, but also gives us a list of the `WorkerEntrypoint` exports names to look up our service bindings later.
+
+To iterate on your docs, run `pnpm generate:docs:watch` and you'll see the output change as you tweak your JSDoc in your `src/index.ts` (you'll need [watchexec](https://github.com/watchexec/watchexec) installed).
+
+## 2. Public HTTP handler: `templates/wrapper.ts`
+
+Since our `WorkerEntrypoint` is not directly accessible, we need something that defines a default export with a `fetch()` handler. This is what `templates/wrapper.ts` does.
+
+This exposes a single endpoint, `/rpc`, which takes a JSON payload of `{ entrypoint: string, method: string, args?: any[] }`, then directly translates that to:
+
+```ts
+// BINDINGS injected from wrangler.json
+const binding_config = BINDINGS[entrypoint]
+return await env[binding_config.binding][method](...args)
+```
+
+This means that you need an entry in your `services:` object in `wrangler.json` for each entrypoint you want to connect to, e.g.:
+
+```json
+"services": [
+  {
+    "binding": "MCP",
+    "service": "workers-mcp-server",
+    "entrypoint": "ExampleWorkerMCP"
+  }
+]
+```
+
+If you want to start using multiple entrypoints, you'll need to call `pnpm install:claude <server-alias> <worker-url> <entrypoint-name>` for each one. Then, Claude will see them as separate MCP servers, and presumably invoke them differently than if they were all lumped together in one.
+
+### 3. Local MCP proxy: `scripts/local-proxy.ts`
+
+This file uses the `@modelcontextprotocol/sdk` library to build up a normal, local MCP server. This responds to `tools/list` by producing the data from `docs.json` for the specified entrypoint.
+
+On `tools/call`, a `.fetch` call is made to the remote worker on the `/rpc` route, providing a `Bearer` token with the contents of `generated/.shared-secret`. The responses are then piped back to Claude.
+
+Calling `pnpm install:claude <server-alias> <worker-url> <entrypoint-name>` adds a sever definition that point to this file in your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "<server-alias>": {
+      "command": "<absolute-path-to>/node",
+      "args": [
+        "<project-dir>/node_modules/tsx/dist/cli.mjs",
+        "<project-dir>/scripts/local-proxy.ts",
+        "<server-alias>",
+        "<worker-url>",
+        "<entrypoint-name>"
+      ]
+    }
+  }
+}
+```
+
+In this way you can install as many of these as you like, as long as they each have a distinct `<server-alias>`.
 
 ## Limitations
 
@@ -124,16 +180,14 @@ There are lots. This pizza is straight out of the oven. You may well burn your m
 7. No support for [Resources](https://spec.modelcontextprotocol.io/specification/server/resources/). It might be cool to be able to define the list of verified email addresses as a resource, for example. That would be a resource, right?
 8. The docs parsing doesn't yet use TS types to either augment or replace the need for `@param` blocks in the JSDoc
 9. The doc generation might be completely superfluous if someone was using a validator like zod or a schema library like typebox. However, I wanted build-time docs generation (i.e. static extraction) and wanted to be as generic as possible, so JSDoc will do for now.
+10. This works on my machine, but has only been _tested_ on my machine.
 
-// TODO: short demo video here
+## Future ideas
 
-This project has 3 parts:
+Obviously, having Claude Desktop talk directly to the Worker would be ideal. Also, `wrangler dev --remote` support would be great: you could iterate on your worker without redeploying, but still access your production bindings.
 
-## The Worker itself
+The docs generator needs to be extracted into a library so we can publish changes, as it needs to grow in scope to be really useful, and likely incorporate other sources of data (`d.ts` files, zod schemas, etc).
 
-`src/index.ts` exports a `ExampleWorkerMCP` class that defines a few methods that Claude can invoke:
+## Feedback & Contributions
 
-* `takeScreenshot` uses the [Browser Rendering](https://developers.cloudflare.com/browser-rendering/) API from Cloudflare to take and return a screenshot of a given URL.
-* `sendEmail` uses the [Email Routing](https://developers.cloudflare.com/email-routing/email-workers/send-email-workers/) API from Cloudflare to send an email to the owner's address.
-
-![image](https://github.com/user-attachments/assets/95536201-70cd-4fae-9931-eb3ba267e425) ![image](https://github.com/user-attachments/assets/cc3dc7b6-0d44-40b1-abcf-e1f73d16f9b6)
+Give it a try! Then, raise an issue or send a PR and we can discuss what needs to change. This is all very new, so it could really go in a lot of different directions. We'd love to hear from you!

@@ -18,7 +18,7 @@ const [_, __, claude_name, workers_url, entrypoint_name, ...rest] = process.argv
 log(claude_name, workers_url, entrypoint_name)
 
 if (!claude_name || !workers_url || !entrypoint_name || rest.length > 0) {
-  console.error('usage: tsx ./scripts/run.ts <claude_name> <workers_url> <entrypoint_name>')
+  console.error('usage: tsx ./scripts/local-proxy.ts <claude_name> <workers_url> <entrypoint_name>')
   process.exit(1)
 }
 

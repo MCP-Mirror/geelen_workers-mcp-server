@@ -13,8 +13,8 @@
       "entrypoint": "ExampleWorkerMCP"
     }
   ],
-	/* Note: comment this out if you haven't set up Email Routing */
 
+  /* Note: comment this out if you haven't set up Email Routing */
   "send_email": [
     {
       "type": "send_email",
