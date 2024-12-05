@@ -6,9 +6,6 @@
   "observability": {
     "enabled": true
   },
-  "browser": {
-    "binding": "MYBROWSER"
-  },
   "services": [
     {
       "binding": "MCP",
@@ -16,12 +13,8 @@
       "entrypoint": "ExampleWorkerMCP"
     }
   ],
-  "kv_namespaces": [
-    {
-      "binding": "KV",
-      "id": "b238c4cd56924437b9ce8da2c14f4e8e"
-    }
-  ],
+	/* Note: comment this out if you haven't set up Email Routing */
+
   "send_email": [
     {
       "type": "send_email",

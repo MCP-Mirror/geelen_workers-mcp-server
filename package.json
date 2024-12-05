@@ -17,7 +17,6 @@
     "types": "wrangler types"
   },
   "devDependencies": {
-    "@cloudflare/puppeteer": "^0.0.14",
     "@cloudflare/vitest-pool-workers": "^0.5.2",
     "@cloudflare/workers-types": "^4.20241202.0",
     "@modelcontextprotocol/inspector": "^0.2.7",
@@ -27,12 +26,8 @@
     "chalk": "^5.3.0",
     "confbox": "^0.1.8",
     "jsdoc-api": "^9.3.4",
-    "just-group-by": "^2.2.0",
     "just-index": "^4.2.0",
     "mimetext": "^3.0.24",
-    "puppeteer": "^23.10.0",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-repl": "^2.3.3",
     "ts-blank-space": "^0.4.4",
     "tsx": "^4.19.2",
     "typescript": "^5.5.2",

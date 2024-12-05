@@ -4,38 +4,8 @@
     "description": null,
     "methods": [
       {
-        "name": "sendEmail",
-        "description": "Send a text or HTML email to an arbitrary recipient.",
-        "params": [
-          {
-            "description": "The email address of the recipient.",
-            "name": "recipient",
-            "type": "string"
-          },
-          {
-            "description": "The subject of the email.",
-            "name": "subject",
-            "type": "string"
-          },
-          {
-            "description": "The content type of the email. Can be text/plain or text/html",
-            "name": "contentType",
-            "type": "string"
-          },
-          {
-            "description": "The body of the email. Must match the provided contentType parameter",
-            "name": "body",
-            "type": "string"
-          }
-        ],
-        "returns": {
-          "description": "A success message.",
-          "type": "Promise.<string>"
-        }
-      },
-      {
-        "name": "random",
-        "description": "Generates a random number. This is extra random because it had to travel half way around the world to be generated.",
+        "name": "getRandomNumber",
+        "description": "Generates a random number. This is extra random because it had to travel all the way to\nyour nearest Cloudflare PoP to be calculated which... something something lava lamps?",
         "params": [],
         "returns": {
           "description": "A message containing a super duper random number",
