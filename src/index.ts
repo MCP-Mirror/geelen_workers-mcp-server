@@ -28,17 +28,26 @@ export class ExampleWorkerMCP extends WorkerEntrypoint<Env> {
     // For users cloning this project who don't have Email Routing enabled:
     if (!this.env.EMAIL) throw new Error(`'EMAIL' binding not present. Have you added it to wrangler.json?`)
 
-    const msg = createMimeMessage()
-    const from = 'glen@gmad.dev'
-    msg.setSender({ name: 'Claude Desktop', addr: from })
-    msg.setRecipient(recipient)
-    msg.setSubject(subject)
-    msg.addMessage({
-      contentType: contentType,
-      data: body,
-    })
+    try {
+      const msg = createMimeMessage()
+      const from = this.env.EMAIL_FROM
 
-    await this.env.EMAIL.send(new EmailMessage(from, recipient, msg.asRaw()))
-    return 'Email sent successfully!'
+      if (from === 'PLEASE CONFIGURE ME') {
+        throw new Error(`Please configure the EMAIL_FROM variable in wrangler.json`)
+      }
+      msg.setSender({ name: 'Claude Desktop', addr: from })
+      msg.setRecipient(recipient)
+      msg.setSubject(subject)
+      msg.addMessage({
+        contentType: contentType,
+        data: body,
+      })
+
+      await this.env.EMAIL.send(new EmailMessage(from, recipient, msg.asRaw()))
+      return 'Email sent successfully!'
+    } catch (error) {
+      console.error(error)
+      throw error
+    }
   }
 }

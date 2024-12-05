@@ -1,10 +1,14 @@
 {
-  "compatibility_date": "2024-12-02",
+  "compatibility_date": "2024-11-06",
   "compatibility_flags": ["nodejs_compat"],
   "main": "generated/index.ts",
   "name": "workers-mcp-server",
   "observability": {
     "enabled": true
+  },
+  "vars": {
+    /* Note: Configure this to be an email from a domain where you have Email Routing enabled */
+    "EMAIL_FROM": "PLEASE CONFIGURE ME"
   },
   "services": [
     {
@@ -17,7 +21,6 @@
   /* Note: comment this out if you haven't set up Email Routing */
   "send_email": [
     {
-      "type": "send_email",
       "name": "EMAIL"
     }
   ]
