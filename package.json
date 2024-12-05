@@ -9,7 +9,7 @@
     "tail:worker": "wrangler tail",
     "install:claude": "tsx scripts/install.ts",
     "update:secret": "wrangler secret put SHARED_SECRET <generated/.shared-secret",
-    "generate:docs": "tsx scripts/parse.ts src/index.ts > generated/docs.json",
+    "generate:docs": "tsx scripts/generate-docs.ts src/index.ts | tee generated/docs.json",
     "generate:docs:watch": "watchexec -c -w src -w scripts pnpm generate:docs",
     "dev": "wrangler dev",
     "start": "wrangler dev",
