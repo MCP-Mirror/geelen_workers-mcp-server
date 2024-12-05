@@ -1,6 +1,8 @@
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import puppeteer from '@cloudflare/puppeteer'
 import { Env } from '../worker-configuration'
+import { EmailMessage } from 'cloudflare:email'
+import { createMimeMessage } from 'mimetext'
 
 export class ExampleWorkerMCP extends WorkerEntrypoint<Env> {
   /**
@@ -15,7 +17,7 @@ export class ExampleWorkerMCP extends WorkerEntrypoint<Env> {
    * const response = await worker.takeScreenshot('https://example.com', ['Close'])
    * const img = await response.arrayBuffer()
    */
-  async takeScreenshot(url: string, clickTheseFirst?: string[]) {
+  async #takeScreenshot(url: string, clickTheseFirst?: string[]) {
     const time = Math.floor(+new Date() / 100000) // Changes every 100 seconds
     const cacheKey = JSON.stringify({ url, clickTheseFirst, time })
       .replace(/\W+/g, '_')
@@ -55,7 +57,30 @@ export class ExampleWorkerMCP extends WorkerEntrypoint<Env> {
     return new Response(img, { headers: { 'Content-Type': 'image/png', 'x-img-length': img.byteLength.toString() } })
   }
 
-  async sendEmail(payload: string) {}
+  /**
+   * Send a text or HTML email to an arbitrary recipient.
+   *
+   * @param {string} recipient - The email address of the recipient.
+   * @param {string} subject - The subject of the email.
+   * @param {string} contentType - The content type of the email. Can be text/plain or text/html
+   * @param {string} body - The body of the email. Must match the provided contentType parameter
+   * @return {Promise<string>} A success message.
+   * @throws {Error} If the email fails to send, or if that destination email address hasn't been verified.
+   */
+  async sendEmail(recipient: string, subject: string, contentType: string, body: string) {
+    const msg = createMimeMessage()
+    const from = 'glen@gmad.dev'
+    msg.setSender({ name: 'Claude Desktop', addr: from })
+    msg.setRecipient(recipient)
+    msg.setSubject(subject)
+    msg.addMessage({
+      contentType: contentType,
+      data: body,
+    })
+
+    await this.env.EMAIL.send(new EmailMessage(from, recipient, msg.asRaw()))
+    return 'Email sent successfully!'
+  }
 
   /**
    * Generates a random number. This is extra random because it had to travel half way around the world to be generated.

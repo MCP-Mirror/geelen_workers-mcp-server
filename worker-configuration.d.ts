@@ -6,4 +6,5 @@ interface Env {
   MCP: Service<ExampleWorkerMCP>
   MYBROWSER: Fetcher
   KV: KVNamespace
+  EMAIL: SendEmail
 }

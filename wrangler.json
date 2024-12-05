@@ -21,5 +21,11 @@
       "binding": "KV",
       "id": "b238c4cd56924437b9ce8da2c14f4e8e"
     }
+  ],
+  "send_email": [
+    {
+      "type": "send_email",
+      "name": "EMAIL"
+    }
   ]
 }

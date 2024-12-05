@@ -104,13 +104,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
   } else if (contentType?.match(/image\//)) {
     const buffer = Buffer.from(bytes)
-    fs.writeFileSync(path.join(path.resolve(__dirname, '../tmp'), +new Date() + '.png'), buffer)
+    const filename = path.join(path.resolve(__dirname, '../tmp'), +new Date() + '.png')
+    fs.writeFileSync(filename, buffer)
     const base64 = buffer.toString('base64')
+    fs.writeFileSync(filename + '.base64', base64)
     return {
       toolResult: {
         content: [{ type: 'image', data: base64, mimeType: contentType }],
       },
     }
+  } else if (contentType?.match(/application\/json/)) {
+    const content = JSON.parse(text)
+    return 'toolResult' in content
+      ? content
+      : {
+          toolResult: {
+            content: Array.isArray(content) ? content : [content],
+          },
+        }
   } else {
     return {
       toolResult: {

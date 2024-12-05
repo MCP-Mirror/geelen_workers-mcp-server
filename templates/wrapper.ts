@@ -19,18 +19,22 @@ export default {
   async fetch(request: Request, env: Env) {
     const { pathname } = new URL(request.url)
 
-    if (pathname === '/test-browser') {
-      const result = await env.MCP.takeScreenshot('https://nytimes.com')
-      if (result instanceof Response) {
-        return result
-      } else {
-        return Response.json(result)
-      }
-    }
-
-    if (pathname === '/test-secret') {
-      return Response.json({ secret: env.SHARED_SECRET, length: env.SHARED_SECRET.length })
-    }
+    // if (pathname === '/test-browser') {
+    //   const result = await env.MCP.takeScreenshot('https://nytimes.com')
+    //   if (result instanceof Response) {
+    //     return result
+    //   } else {
+    //     return Response.json(result)
+    //   }
+    // }
+    //
+    // if (pathname === '/test-secret') {
+    //   return Response.json({ secret: env.SHARED_SECRET, length: env.SHARED_SECRET.length })
+    // }
+    //
+    // if (pathname === '/test-email') {
+    //   return Response.json(await env.MCP.sendEmail('glen@cloudflare.com', 'Hello, there.', 'text/plain', 'Hihihihih'))
+    // }
 
     if (pathname === '/rpc' && request.method === 'POST') {
       const authorization = request.headers.get('Authorization')?.replace(/^Bearer /, '') || ''
@@ -45,13 +49,22 @@ export default {
       console.log({ binding })
 
       const stub = env[binding.binding]
-      const result = await stub[method](...args)
-      if (result instanceof Response) {
-        return result
-      } else if (typeof result === 'string') {
-        return new Response(result)
-      } else {
-        return Response.json(result)
+      try {
+        const result = await stub[method](...args)
+        if (result instanceof Response) {
+          return result
+        } else if (typeof result === 'string') {
+          return new Response(result)
+        } else {
+          return Response.json(result)
+        }
+      } catch (e) {
+        return Response.json({
+          toolResult: {
+            content: [{ type: 'text', text: (e as Error).message }],
+            isError: true,
+          },
+        })
       }
     }
 
