@@ -1,7 +1,7 @@
 {
   "ExampleWorkerMCP": {
-    "exported_as": "ExampleWorkerMCP",
-    "description": null,
+    "exported_as": "default",
+    "description": "Anything you define within this class becomes automatically available inside Claude Desktop",
     "methods": [
       {
         "name": "getRandomNumber",
@@ -41,7 +41,26 @@
           "description": "A success message.",
           "type": "Promise.<string>"
         }
+      },
+      {
+        "name": "takeScreenshot",
+        "description": "Takes a screenshot of a given URL.",
+        "params": [
+          {
+            "description": "The URL to take a screenshot of",
+            "name": "url",
+            "type": "string"
+          }
+        ],
+        "returns": {
+          "description": "A Response with an image/png type body containing the screenshot",
+          "type": "Promise.<Response>"
+        },
+        "examples": [
+          "const response = await worker.takeScreenshot('https://example.com')\nconst img = await response.arrayBuffer()"
+        ]
       }
-    ]
+    ],
+    "statics": {}
   }
 }
