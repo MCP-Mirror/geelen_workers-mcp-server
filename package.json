@@ -16,6 +16,7 @@
     "types": "wrangler types"
   },
   "devDependencies": {
+    "@cloudflare/puppeteer": "^0.0.14",
     "@cloudflare/vitest-pool-workers": "^0.5.33",
     "@cloudflare/workers-types": "^4.20241202.0",
     "@modelcontextprotocol/inspector": "^0.2.7",

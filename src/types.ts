@@ -8,4 +8,7 @@ export interface Env {
 
   /* Secrets */
   SHARED_SECRET: string
+
+  MYBROWSER: Fetcher
+  KV: KVNamespace
 }

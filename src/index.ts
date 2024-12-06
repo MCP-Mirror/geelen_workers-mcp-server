@@ -1,38 +1,14 @@
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { Env } from './types'
-import { WorkerMCP } from '../lib/WorkerMCP'
-
+import puppeteer from '@cloudflare/puppeteer'
 import { EmailMessage } from 'cloudflare:email'
 import { createMimeMessage } from 'mimetext'
+import { Env } from './types'
+import { WorkerMCP } from '../lib/WorkerMCP'
 
 /**
  * Anything you define within this class becomes automatically available inside Claude Desktop
  * */
 export default class ExampleWorkerMCP extends WorkerEntrypoint<Env> {
-  static Resources = {
-    /**
-     * A URL of a nearby surf camera, to check for local surf conditions
-     * */
-    local_surf_cam_url: 'https://www.swellnet.com/surfcams/noosa-heads',
-    /**
-     * This is my email address, to be used whenever I ask to "email me" something.
-     * @return {string}
-     * */
-    my_email_address: (env: Env) => env.MY_EMAIL,
-  }
-
-  notThisTho = {
-    /**
-     * A URL of a nearby surf camera, to check for local surf conditions
-     * */
-    local_surf_cam_url: 'https://www.swellnet.com/surfcams/noosa-heads',
-    /**
-     * This is my email address, to be used whenever I ask to "email me" something.
-     * @return {string}
-     * */
-    my_email_address: (env: Env) => env.MY_EMAIL,
-  }
-
   /**
    * Generates a random number. This is extra random because it had to travel all the way to
    * your nearest Cloudflare PoP to be calculated which... something something lava lamps?
@@ -78,6 +54,40 @@ export default class ExampleWorkerMCP extends WorkerEntrypoint<Env> {
       console.error(error)
       throw error
     }
+  }
+
+  /**
+   * Takes a screenshot of a given URL.
+   *
+   * @param {string} url The URL to take a screenshot of
+   * @return {Promise<Response>} A Response with an image/png type body containing the screenshot
+   *
+   * @example
+   * const response = await worker.takeScreenshot('https://example.com')
+   * const img = await response.arrayBuffer()
+   */
+  async takeScreenshot(url: string) {
+    // const time = Math.floor(+new Date() / 100000) // Changes every 100 seconds
+    // const cacheKey = JSON.stringify({ url, time })
+    //   .replace(/\W+/g, '_')
+    //   .replace(/^_|_$|(?<=_)_+/, '_')
+
+    // let img: ArrayBuffer | null = null
+    // img = await this.env.KV.get(cacheKey, { type: 'arrayBuffer' })
+    // if (img === null) {
+    const browser = await puppeteer.launch(this.env.MYBROWSER)
+    const page = await browser.newPage()
+    await page.setViewport({ width: 768, height: 1024 })
+    console.log(`Going to ${url}.`)
+    // console.log(`Going to ${url}. Cache key ${cacheKey}`)
+    await page.goto(url)
+
+    const img = await page.screenshot()
+    // await this.env.KV.put(cacheKey, img, { expirationTtl})
+    await browser.close()
+    // }
+
+    return new Response(img, { headers: { 'Content-Type': 'image/png' } })
   }
 
   /**

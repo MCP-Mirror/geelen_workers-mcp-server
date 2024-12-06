@@ -41,21 +41,26 @@
           "description": "A success message.",
           "type": "Promise.<string>"
         }
+      },
+      {
+        "name": "takeScreenshot",
+        "description": "Takes a screenshot of a given URL.",
+        "params": [
+          {
+            "description": "The URL to take a screenshot of",
+            "name": "url",
+            "type": "string"
+          }
+        ],
+        "returns": {
+          "description": "A Response with an image/png type body containing the screenshot",
+          "type": "Promise.<Response>"
+        },
+        "examples": [
+          "const response = await worker.takeScreenshot('https://example.com')\nconst img = await response.arrayBuffer()"
+        ]
       }
     ],
-    "statics": {
-      "Resources": [
-        {
-          "name": "local_surf_cam_url",
-          "description": "A URL of a nearby surf camera, to check for local surf conditions",
-          "type": "string"
-        },
-        {
-          "name": "my_email_address",
-          "description": "This is my email address, to be used whenever I ask to \"email me\" something.",
-          "type": "string"
-        }
-      ]
-    }
+    "statics": {}
   }
 }

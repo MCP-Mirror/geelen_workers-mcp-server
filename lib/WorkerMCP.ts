@@ -33,7 +33,7 @@ export class WorkerMCP<T extends { SHARED_SECRET: string }> {
       }
 
       try {
-        const result = await methodReference(...args)
+        const result = await methodReference.call(this.worker, ...args)
         if (result instanceof Response) {
           return result
         } else if (typeof result === 'string') {
@@ -43,10 +43,11 @@ export class WorkerMCP<T extends { SHARED_SECRET: string }> {
         }
       } catch (e) {
         return Response.json({
-          toolResult: {
-            content: [{ type: 'text', text: (e as Error).message }],
-            isError: true,
-          },
+          content: [
+            { type: 'text', text: (e as Error).message },
+            { type: 'text', text: JSON.stringify((e as Error).stack) },
+          ],
+          isError: true,
         })
       }
     }
