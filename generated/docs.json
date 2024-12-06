@@ -1,7 +1,7 @@
 {
   "ExampleWorkerMCP": {
-    "exported_as": "ExampleWorkerMCP",
-    "description": null,
+    "exported_as": "default",
+    "description": "Anything you define within this class becomes automatically available inside Claude Desktop",
     "methods": [
       {
         "name": "getRandomNumber",
@@ -42,6 +42,20 @@
           "type": "Promise.<string>"
         }
       }
-    ]
+    ],
+    "statics": {
+      "Resources": [
+        {
+          "name": "local_surf_cam_url",
+          "description": "A URL of a nearby surf camera, to check for local surf conditions",
+          "type": "string"
+        },
+        {
+          "name": "my_email_address",
+          "description": "This is my email address, to be used whenever I ask to \"email me\" something.",
+          "type": "string"
+        }
+      ]
+    }
   }
 }

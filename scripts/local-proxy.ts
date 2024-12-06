@@ -1,13 +1,20 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js'
+import {
+  CallToolRequestSchema,
+  ListResourcesRequestSchema,
+  ListToolsRequestSchema,
+  ReadResourceRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js'
 import TOOLS from '../generated/docs.json'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'url'
+import { EntrypointDoc } from './types'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+const SHARED_SECRET = fs.readFileSync(path.resolve(__dirname, '../generated/.shared-secret'), 'utf-8')
 
 export function log(...args: any[]) {
   const msg = `[DEBUG ${new Date().toISOString()}] ${args.join(' ')}\n`
@@ -24,13 +31,67 @@ if (!claude_name || !workers_url || !entrypoint_name || rest.length > 0) {
 
 log(JSON.stringify(TOOLS, null, 2))
 
-const server = new Server({ name: claude_name, version: '1.0.0' }, { capabilities: { tools: {} } })
+const server = new Server({ name: claude_name, version: '1.0.0' }, { capabilities: { resources: {}, tools: {} } })
+
+const WORKER_SCHEMA = Object.values(TOOLS as Record<string, EntrypointDoc>).find((tool) => tool.exported_as === 'default')
+if (!WORKER_SCHEMA) {
+  console.log(`No default exported WorkerEntrypoint found! Check generated/docs.json`)
+  process.exit(1)
+}
+
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  log('Received list resources request')
+
+  return {
+    resources: (WORKER_SCHEMA.statics.Resources || []).map(({ name, type, description }) => ({
+      uri: `resource://${name}`,
+      name,
+      description,
+      mimeType: type === 'string' ? 'text/plain' : undefined,
+    })),
+  }
+})
+
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  log(JSON.stringify(request, null, 2))
+  const { uri } = request.params
+  log('Received read resource request: ', uri)
+
+  const resource = (WORKER_SCHEMA.statics.Resources || []).find(({ name }) => `resource://${name}` === uri)
+  log(JSON.stringify(resource, null, 2))
+  if (!resource) {
+    throw new Error(`Couldn't find resource at uri ${uri}`)
+  }
+
+  const fetchUrl = `${workers_url}/resources/${resource.name}`
+  log(fetchUrl)
+  const response = await fetch(fetchUrl, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + SHARED_SECRET,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch resource: ${response.status} ${await response.text()}`)
+  }
+
+  return {
+    contents: [
+      {
+        uri,
+        // TODO: do other types
+        mimeType: 'text/plain',
+        text: await response.text(),
+      },
+    ],
+  }
+})
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   log('Received list tools request')
-  log(JSON.stringify(TOOLS[entrypoint_name]))
   return {
-    tools: TOOLS[entrypoint_name].methods.map((doc) => {
+    tools: WORKER_SCHEMA.methods.map((doc) => {
       return {
         name: doc.name,
         description: doc.description,
@@ -48,7 +109,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const toolName = request.params.name
   log('Received tool call:', toolName)
 
-  const method = TOOLS[entrypoint_name].methods.find((doc) => doc.name === toolName)
+  const method = WORKER_SCHEMA.methods.find((doc) => doc.name === toolName)
 
   if (!method) {
     return {
@@ -60,13 +121,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
   log(JSON.stringify(request.params))
   log(JSON.stringify(method.params))
-  const args = method.params.map((param) => request.params.arguments[param.name])
+  const args = method.params.map((param) => request.params.arguments?.[param.name])
 
   const init = {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + fs.readFileSync(path.resolve(__dirname, '../generated/.shared-secret'), 'utf-8'),
+      Authorization: 'Bearer ' + SHARED_SECRET,
     },
     body: JSON.stringify({ entrypoint: entrypoint_name, method: toolName, args }),
   }

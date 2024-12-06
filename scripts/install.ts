@@ -8,10 +8,10 @@ import which from 'which'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const [_, __, claude_name, workers_url, entrypoint_name, ...rest] = process.argv
+const [_, __, claude_name, workers_url, ...rest] = process.argv
 
-if (!claude_name || !workers_url || !entrypoint_name || rest.length > 0) {
-  console.error('usage: tsx ./scripts/install.ts <claude_name> <workers_url> <entrypoint_name>')
+if (!claude_name || !workers_url || rest.length > 0) {
+  console.error('usage: tsx ./scripts/install.ts <claude_name> <workers_url>')
   process.exit(1)
 }
 
@@ -27,13 +27,7 @@ export function isDirectory(configPath: string) {
 const claudeConfigPath = path.join(os.homedir(), 'Library', 'Application Support', 'Claude', 'claude_desktop_config.json')
 const mcpConfig = {
   command: (await which('node')).trim(),
-  args: [
-    path.resolve(__dirname, '../node_modules/tsx/dist/cli.mjs'),
-    path.join(__dirname, 'local-proxy.ts'),
-    claude_name,
-    workers_url,
-    entrypoint_name,
-  ],
+  args: [path.resolve(__dirname, '../node_modules/tsx/dist/cli.mjs'), path.join(__dirname, 'local-proxy.ts'), claude_name, workers_url],
 }
 
 console.log(`Looking for existing config in: ${chalk.yellow(path.dirname(claudeConfigPath))}`)

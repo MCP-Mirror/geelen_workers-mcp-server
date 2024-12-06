@@ -32,10 +32,10 @@ And, using the provided MCP proxy, your Claude Desktop can see & invoke these me
 1. **Clone this repo.**<br/>There's a few pieces of novel code that need to hang together to make this work, so for now the way to play with it is to clone this repo first. Then, from within this folder:
 2. **`pnpm install`**
 3. **Check `wrangler.json`**<br/>The current demo uses both the [Email Routing](https://developers.cloudflare.com/email-routing/) API and [Durable Objects](https://developers.cloudflare.com/durable-objects/). If you don't have access to these, or they're not enabled, comment out the relevant sections in `wrangler.json` or your deploy will fail.
-4. **`pnpm deploy:worker`**<br/>This takes your `src/index.ts` file and generates `generated/docs.json` from it, then wraps it in `templates/wrapper.ts` and builds & deploys it using Wrangler.
-   * You'll also need to run `pnpm update:secret` the very first time you do this.
-5. **`pnpm install:claude <server-alias> <worker-url> <entrypoint-name>`**<br/>For me, that's `pnpm install:claude workers-mcp-server https://workers-mcp-server.glen.workers.dev ExampleWorkerMCP`
-6. **Restart Claude Desktop** You have to do this pretty often, but you _definitely_ have to do it after running the install step above.
+4. **`pnpm deploy:worker`**<br/>This takes your `src/index.ts` file and generates `generated/docs.json` from it, then deploys it using Wrangler.
+5. **`pnpm update:secret`**<br/>This generates `generated/.shared-secret` and set its contents as a secret on your worker using `wrangler secret put`. You only need to this once.
+6. **`pnpm install:claude <server-alias> <worker-url> <entrypoint-name>`**<br/>For me, that's `pnpm install:claude workers-mcp-server https://workers-mcp-server.glen.workers.dev ExampleWorkerMCP`
+7. **Restart Claude Desktop** You have to do this pretty often, but you _definitely_ have to do it after running the install step above.
 
 To iterate on your server, do the following:
 

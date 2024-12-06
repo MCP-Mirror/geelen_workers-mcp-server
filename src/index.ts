@@ -1,9 +1,38 @@
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { Env } from '../worker-configuration'
+import { Env } from './types'
+import { WorkerMCP } from '../lib/WorkerMCP'
+
 import { EmailMessage } from 'cloudflare:email'
 import { createMimeMessage } from 'mimetext'
 
-export class ExampleWorkerMCP extends WorkerEntrypoint<Env> {
+/**
+ * Anything you define within this class becomes automatically available inside Claude Desktop
+ * */
+export default class ExampleWorkerMCP extends WorkerEntrypoint<Env> {
+  static Resources = {
+    /**
+     * A URL of a nearby surf camera, to check for local surf conditions
+     * */
+    local_surf_cam_url: 'https://www.swellnet.com/surfcams/noosa-heads',
+    /**
+     * This is my email address, to be used whenever I ask to "email me" something.
+     * @return {string}
+     * */
+    my_email_address: (env: Env) => env.MY_EMAIL,
+  }
+
+  notThisTho = {
+    /**
+     * A URL of a nearby surf camera, to check for local surf conditions
+     * */
+    local_surf_cam_url: 'https://www.swellnet.com/surfcams/noosa-heads',
+    /**
+     * This is my email address, to be used whenever I ask to "email me" something.
+     * @return {string}
+     * */
+    my_email_address: (env: Env) => env.MY_EMAIL,
+  }
+
   /**
    * Generates a random number. This is extra random because it had to travel all the way to
    * your nearest Cloudflare PoP to be calculated which... something something lava lamps?
@@ -49,5 +78,13 @@ export class ExampleWorkerMCP extends WorkerEntrypoint<Env> {
       console.error(error)
       throw error
     }
+  }
+
+  /**
+   * Claude can't talk directly to this WorkerEntrypoint over RPC (yet), so we need to define a HTTP handler
+   * @ignore (this isn't something Claude should know about, as it can't call it directly)
+   */
+  async fetch(request: Request): Promise<Response> {
+    return new WorkerMCP(this).fetch(request)
   }
 }
