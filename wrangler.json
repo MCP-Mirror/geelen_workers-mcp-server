@@ -9,9 +9,7 @@
 
   "vars": {
     /* Note: Configure this to be an email from a domain where you have Email Routing enabled */
-    "EMAIL_FROM": "glen@gmad.dev",
-    /* Note: you must verify this email to be able to send messages to it */
-    "MY_EMAIL": "PLEASE CONFIGURE ME"
+    "EMAIL_FROM": "PLEASE CONFIGURE ME",
   },
 
   /* Note: comment this out if you haven't set up Email Routing */
@@ -21,13 +19,8 @@
     }
   ],
 
+  /* Note: comment this out if you don't have access to Browser Rendering */
   "browser": {
     "binding": "MYBROWSER"
-  },
-  "kv_namespaces": [
-    {
-      "binding": "KV",
-      "id": "b238c4cd56924437b9ce8da2c14f4e8e"
-    }
-  ]
+  }
 }

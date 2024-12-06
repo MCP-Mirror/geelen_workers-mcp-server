@@ -8,15 +8,15 @@ You write worker code that looks like this:
 
 ```ts
 export class ExampleWorkerMCP extends WorkerEntrypoint<Env> {
-  /**
-   * Generates a random number. This is extra random because it had to travel all the way to
-   * your nearest Cloudflare PoP to be calculated which... something something lava lamps?
-   *
-   * @return {string} A message containing a super duper random number
-   * */
-  async getRandomNumber() {
-    return `Your random number is ${Math.random()}`
-  }
+	/**
+	 * Generates a random number. This is extra random because it had to travel all the way to
+	 * your nearest Cloudflare PoP to be calculated which... something something lava lamps?
+	 *
+	 * @return {string} A message containing a super duper random number
+	 * */
+	async getRandomNumber() {
+		return `Your random number is ${Math.random()}`
+	}
 }
 ```
 
@@ -31,10 +31,10 @@ And, using the provided MCP proxy, your Claude Desktop can see & invoke these me
 0. **Download Claude Desktop** https://claude.ai/download
 1. **Clone this repo.**<br/>There's a few pieces of novel code that need to hang together to make this work, so for now the way to play with it is to clone this repo first. Then, from within this folder:
 2. **`pnpm install`**
-3. **Check `wrangler.json`**<br/>The current demo uses both the [Email Routing](https://developers.cloudflare.com/email-routing/) API and [Durable Objects](https://developers.cloudflare.com/durable-objects/). If you don't have access to these, or they're not enabled, comment out the relevant sections in `wrangler.json` or your deploy will fail.
-4. **`pnpm deploy:worker`**<br/>This takes your `src/index.ts` file and generates `generated/docs.json` from it, then deploys it using Wrangler.
+3. **Check `wrangler.json`**<br/>The current demo uses both the [Email Routing](https://developers.cloudflare.com/email-routing/) API and [Browser Rendering](https://developers.cloudflare.com/browser-rendering/. If you don't have access to these, or they're not enabled, comment out the relevant sections in `wrangler.json` or your deploy will fail.
+4. **`pnpm deploy:worker`**<br/>This takes your `src/index.ts` file and generate `generated/docs.json` from it, then deploys it using Wrangler.
 5. **`pnpm update:secret`**<br/>This generates `generated/.shared-secret` and set its contents as a secret on your worker using `wrangler secret put`. You only need to this once.
-6. **`pnpm install:claude <server-alias> <worker-url> <entrypoint-name>`**<br/>For me, that's `pnpm install:claude workers-mcp-server https://workers-mcp-server.glen.workers.dev ExampleWorkerMCP`
+6. **`pnpm install:claude <server-alias> <worker-url>`**<br/>For me, that's `pnpm install:claude workers-mcp-server https://workers-mcp-server.glen.workers.dev`
 7. **Restart Claude Desktop** You have to do this pretty often, but you _definitely_ have to do it after running the install step above.
 
 To iterate on your server, do the following:
@@ -114,31 +114,11 @@ This list of methods is very similar to the required MCP format for `tools/list`
 
 To iterate on your docs, run `pnpm generate:docs:watch` and you'll see the output change as you tweak your JSDoc in your `src/index.ts` (you'll need [watchexec](https://github.com/watchexec/watchexec) installed).
 
-## 2. Public HTTP handler: `templates/wrapper.ts`
+## 2. Public HTTP handler: `lib/WorkerMCP.ts`
 
-Since our `WorkerEntrypoint` is not directly accessible, we need something that defines a default export with a `fetch()` handler. This is what `templates/wrapper.ts` does.
+Since our `WorkerEntrypoint` is not directly accessible, we need something that defines a default export with a `fetch()` handler. This is what `lib/WorkerMCP.ts` does.
 
-This exposes a single endpoint, `/rpc`, which takes a JSON payload of `{ entrypoint: string, method: string, args?: any[] }`, then directly translates that to:
-
-```ts
-// BINDINGS injected from wrangler.json
-const binding_config = BINDINGS[entrypoint]
-return await env[binding_config.binding][method](...args)
-```
-
-This means that you need an entry in your `services:` object in `wrangler.json` for each entrypoint you want to connect to, e.g.:
-
-```json
-"services": [
-  {
-    "binding": "MCP",
-    "service": "workers-mcp-server",
-    "entrypoint": "ExampleWorkerMCP"
-  }
-]
-```
-
-If you want to start using multiple entrypoints, you'll need to call `pnpm install:claude <server-alias> <worker-url> <entrypoint-name>` for each one. Then, Claude will see them as separate MCP servers, and presumably invoke them differently than if they were all lumped together in one.
+This exposes a single endpoint, `/rpc`, which takes a JSON payload of `{ method: string, args?: any[] }`, then calls that method on your `WorkerEntrypoint`.
 
 ### 3. Local MCP proxy: `scripts/local-proxy.ts`
 
@@ -146,7 +126,7 @@ This file uses the `@modelcontextprotocol/sdk` library to build up a normal, loc
 
 On `tools/call`, a `.fetch` call is made to the remote worker on the `/rpc` route, providing a `Bearer` token with the contents of `generated/.shared-secret`. The responses are then piped back to Claude.
 
-Calling `pnpm install:claude <server-alias> <worker-url> <entrypoint-name>` adds a sever definition that point to this file in your `claude_desktop_config.json`:
+Calling `pnpm install:claude <server-alias> <worker-url>` adds a sever definition that points to this file in your `claude_desktop_config.json`:
 
 ```json
 {
@@ -172,15 +152,13 @@ In this way you can install as many of these as you like, as long as they each h
 There are lots. This pizza is straight out of the oven. You may well burn your mouth.
 
 1. `docs.json` is only generated from `src/index.ts`. It doesn't currently crawl imports like a bundler, because no bundler I could find preserved comments in-place in order for me to run the docs generator afterwards.
-2. Documentation generation only works for class exports, and can't handle default exports yet. It can, at least, parse `class X {}; export { X as Y }`, but in general most people do `export class X {}` anyway so this is fine for now.
+2. Documentation generation only works for class exports. It can, at least, parse `class X {}; export { X as Y }`, but in general most people do `export default class X {}` anyway so this is fine for now.
 3. The local proxy <-> remote proxy communication doesn't follow any particular RPC spec, but it probably should.
-4. Error handling, non-text return values, streaming responses, etc have not really been thought through or aren't yet supported in Claude.
+4. Error handling, non-text return values, streaming responses, etc have not really been thought through but do sorta work.
 5. No `wrangler dev` support yet, but `wrangler dev --remote` should be possible so you don't have to deploy so often
 6. Following on from the above, the spec includes a [`notifications/tools/list_changed` notification](https://spec.modelcontextprotocol.io/specification/server/tools/#list-changed-notification) that should trigger Claude to refresh its list of the tools available, meaning fewer restarts of Claude Desktop. But I haven't implemented that yet.
-7. No support for [Resources](https://spec.modelcontextprotocol.io/specification/server/resources/). It might be cool to be able to define the list of verified email addresses as a resource, for example. That would be a resource, right?
-8. The docs parsing doesn't yet use TS types to either augment or replace the need for `@param` blocks in the JSDoc
-9. The doc generation might be completely superfluous if someone was using a validator like zod or a schema library like typebox. However, I wanted build-time docs generation (i.e. static extraction) and wanted to be as generic as possible, so JSDoc will do for now.
-10. This works on my machine, but has only been _tested_ on my machine.
+7. The docs parsing doesn't yet use TS types to either augment or replace the need for `@param` blocks in the JSDoc
+8. The doc generation might be completely superfluous if someone was using a validator like zod or a schema library like typebox. However, I wanted build-time docs generation (i.e. static extraction) and wanted to be as generic as possible, so JSDoc will do for now.
 
 ## Future ideas
 
@@ -190,4 +168,4 @@ The docs generator needs to be extracted into a library so we can publish change
 
 ## Feedback & Contributions
 
-Give it a try! Then, raise an issue or send a PR and we can discuss what needs to change. This is all very new, so it could really go in a lot of different directions. We'd love to hear from you!
+Give it a try! Then, raise an issue or send a PR . This is all very new, so it could really go in a lot of different directions. We'd love to hear from you!
