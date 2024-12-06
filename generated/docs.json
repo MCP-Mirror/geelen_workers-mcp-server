@@ -13,6 +13,24 @@
         }
       },
       {
+        "name": "takeScreenshot",
+        "description": "Takes a screenshot of a given URL.",
+        "params": [
+          {
+            "description": "The URL to take a screenshot of",
+            "name": "url",
+            "type": "string"
+          }
+        ],
+        "returns": {
+          "description": "A Response with an image/png type body containing the screenshot",
+          "type": "Promise.<Response>"
+        },
+        "examples": [
+          "const response = await worker.takeScreenshot('https://example.com')\nconst img = await response.arrayBuffer()"
+        ]
+      },
+      {
         "name": "sendEmail",
         "description": "Send a text or HTML email to an arbitrary recipient.",
         "params": [
@@ -41,24 +59,6 @@
           "description": "A success message.",
           "type": "Promise.<string>"
         }
-      },
-      {
-        "name": "takeScreenshot",
-        "description": "Takes a screenshot of a given URL.",
-        "params": [
-          {
-            "description": "The URL to take a screenshot of",
-            "name": "url",
-            "type": "string"
-          }
-        ],
-        "returns": {
-          "description": "A Response with an image/png type body containing the screenshot",
-          "type": "Promise.<Response>"
-        },
-        "examples": [
-          "const response = await worker.takeScreenshot('https://example.com')\nconst img = await response.arrayBuffer()"
-        ]
       }
     ],
     "statics": {}
