@@ -21,11 +21,11 @@ export function log(...args: any[]) {
   process.stderr.write(msg)
 }
 
-const [_, __, claude_name, workers_url, entrypoint_name, ...rest] = process.argv
-log(claude_name, workers_url, entrypoint_name)
+const [_, __, claude_name, workers_url, ...rest] = process.argv
+log(claude_name, workers_url)
 
-if (!claude_name || !workers_url || !entrypoint_name || rest.length > 0) {
-  console.error('usage: tsx ./scripts/local-proxy.ts <claude_name> <workers_url> <entrypoint_name>')
+if (!claude_name || !workers_url || rest.length > 0) {
+  console.error('usage: tsx ./scripts/local-proxy.ts <claude_name> <workers_url>')
   process.exit(1)
 }
 
@@ -117,7 +117,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   if (!method) {
     return {
-      content: [{ type: 'text', text: `Couldn't find method '${toolName}' in entrypoint ${entrypoint_name}` }],
+      content: [{ type: 'text', text: `Couldn't find method '${toolName}' in entrypoint` }],
       isError: true,
     }
   }
@@ -131,7 +131,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       'Content-Type': 'application/json',
       Authorization: 'Bearer ' + SHARED_SECRET,
     },
-    body: JSON.stringify({ entrypoint: entrypoint_name, method: toolName, args }),
+    body: JSON.stringify({ method: toolName, args }),
   }
   log(JSON.stringify(init))
   const response = await fetch(workers_url + '/rpc', init)
