@@ -7,7 +7,7 @@
     "deploy:worker": "pnpm generate:docs && wrangler deploy",
     "tail:worker": "wrangler tail",
     "install:claude": "tsx scripts/install.ts",
-    "update:secret": "tsx scripts/update-secret.ts && wrangler secret put SHARED_SECRET <generated/.shared-secret",
+    "generate:secret": "tsx scripts/generate-secret.ts && wrangler secret put SHARED_SECRET <generated/.shared-secret",
     "generate:docs": "tsx scripts/generate-docs.ts src/index.ts | tee generated/docs.json",
     "generate:docs:watch": "watchexec -c -w src -w scripts pnpm generate:docs",
     "dev": "wrangler dev",
@@ -36,5 +36,5 @@
     "which": "^5.0.0",
     "wrangler": "^3.92.0"
   },
-  "packageManager": "pnpm@9.14.4"
+  "packageManager": "pnpm@9.14.4"  
 }
