@@ -7,6 +7,10 @@
     "enabled": true
   },
 
+  "ai": {
+    "binding": "AI"
+  },
+
   "vars": {
     /* Note: Configure this to be an email from a domain where you have Email Routing enabled */
     "EMAIL_FROM": "PLEASE CONFIGURE ME"

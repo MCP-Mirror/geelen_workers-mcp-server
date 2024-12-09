@@ -10,5 +10,6 @@ export interface Env {
   SHARED_SECRET: string
 
   MYBROWSER: Fetcher
-  KV: KVNamespace
+
+  AI: Ai
 }

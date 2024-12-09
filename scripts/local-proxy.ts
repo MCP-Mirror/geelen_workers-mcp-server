@@ -11,6 +11,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'url'
 import { EntrypointDoc } from './types'
+import photon from '@silvia-odwyer/photon-node'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -19,6 +20,11 @@ const SHARED_SECRET = fs.readFileSync(path.resolve(__dirname, '../generated/.sha
 export function log(...args: any[]) {
   const msg = `[DEBUG ${new Date().toISOString()}] ${args.join(' ')}\n`
   process.stderr.write(msg)
+}
+
+function reencodeImage(original: string) {
+  const image = photon.PhotonImage.new_from_base64(original)
+  return image.get_bytes_jpeg(80)
 }
 
 const [_, __, claude_name, workers_url, ...rest] = process.argv
@@ -155,23 +161,33 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   const contentType = response.headers.get('content-type')
 
+  const imageType = contentType?.match(/image\/(\w+)/)
   if (contentType?.match(/text\/plain/)) {
     return {
       content: [{ type: 'text', text }],
     }
-  } else if (contentType?.match(/image\//)) {
+  } else if (imageType) {
     const buffer = Buffer.from(bytes)
-    const filename = path.join(path.resolve(__dirname, '../tmp'), +new Date() + '.png')
+    const type = imageType[1]
+    const filename = path.join(path.resolve(__dirname, '../tmp'), `${+new Date()}.${type}`)
     fs.writeFileSync(filename, buffer)
-    const base64 = buffer.toString('base64')
+    let base64 = buffer.toString('base64')
     fs.writeFileSync(filename + '.base64', base64)
+    // Workers AI sends down pretty huge JPEGS, so reencode them so Claude can handle them
+    if (type === 'jpeg') {
+      const smallerImage = reencodeImage(base64)
+      const smallerFile = `${filename}.reencode.${type}`
+      fs.writeFileSync(smallerFile, smallerImage)
+      base64 = Buffer.from(smallerImage).toString('base64')
+      fs.writeFileSync(smallerFile + '.base64', base64)
+    }
     log(filename, contentType)
     return {
       content: [{ type: 'image', data: base64, mimeType: contentType }],
     }
   } else if (contentType?.match(/application\/json/)) {
     const content = JSON.parse(text)
-    log(`Got response: ${text}`)
+    log(`Got response: ${text.slice(0, 1000)}`)
     return 'content' in content
       ? content
       : {
@@ -179,7 +195,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
   } else {
     return {
-      content: [{ type: 'text', text: `Unknown contentType ${contentType} ${text}` }],
+      content: [{ type: 'text', text: `Unknown contentType ${contentType} ${text.slice(0, 1000)}` }],
       isError: true,
     }
   }
