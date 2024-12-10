@@ -3,7 +3,6 @@ import os from 'node:os'
 import { fileURLToPath } from 'url'
 import fs from 'node:fs'
 import chalk from 'chalk'
-import which from 'which'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -26,8 +25,9 @@ export function isDirectory(configPath: string) {
 
 const claudeConfigPath = path.join(os.homedir(), 'Library', 'Application Support', 'Claude', 'claude_desktop_config.json')
 const mcpConfig = {
-  command: (await which('node')).trim(),
+  command: 'node',
   args: [path.resolve(__dirname, '../node_modules/tsx/dist/cli.mjs'), path.join(__dirname, 'local-proxy.ts'), claude_name, workers_url],
+  env: process.env.NODE_EXTRA_CA_CERTS ? { NODE_EXTRA_CA_CERTS: process.env.NODE_EXTRA_CA_CERTS } : {},
 }
 
 console.log(`Looking for existing config in: ${chalk.yellow(path.dirname(claudeConfigPath))}`)
