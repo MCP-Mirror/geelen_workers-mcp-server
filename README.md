@@ -2,7 +2,7 @@
 
 > **Talk to your Cloudflare Workers from Claude Desktop!**
 
-This is a proof-of-concept of writing a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) Server in a Cloudflare Worker. This gives you a way to extend Claude Desktop (among other MCP clients) by invoking functions in your Worker, which gives you access to any Cloudflare or third-party binding.
+This is a proof-of-concept of writing a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) Server in a Cloudflare Worker. This gives you a way to extend Claude Desktop (among other MCP clients) by invoking functions using Cloudflare Worker's [new RPC syntax](https://blog.cloudflare.com/javascript-native-rpc/), which gives you access to any Cloudflare or third-party binding.
 
 You write worker code that looks like this:
 
