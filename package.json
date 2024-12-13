@@ -4,12 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "deploy:worker": "pnpm generate:docs && wrangler deploy",
+    "deploy:worker": "workers-mcp docgen src/index.ts && wrangler deploy",
     "tail:worker": "wrangler tail",
-    "install:claude": "tsx scripts/install.ts",
-    "generate:secret": "tsx scripts/generate-secret.ts && wrangler secret put SHARED_SECRET <generated/.shared-secret",
-    "generate:docs": "tsx scripts/generate-docs.ts src/index.ts | tee generated/docs.json",
-    "generate:docs:watch": "watchexec -c -w src -w scripts pnpm generate:docs",
     "dev": "wrangler dev",
     "start": "wrangler dev",
     "test": "vitest",
@@ -35,6 +31,7 @@
     "typescript": "^5.7.2",
     "vitest": "2.0.5",
     "which": "^5.0.0",
+    "workers-mcp": "^0.0.6",
     "wrangler": "^3.92.0"
   },
   "packageManager": "pnpm@9.14.4"
